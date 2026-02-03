@@ -1,7 +1,7 @@
 import { sleep } from "./helpers";
 
 
-const API_KEY = import.meta.env.VITE_GEMINI_KEY; 
+const API_KEY = import.meta.env.VITE_GEMINI_KEY;
 const MODEL = "gemini-2.5-flash-preview-09-2025";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
@@ -16,7 +16,7 @@ The JSON must contain three main sections:
 
 Structure the output as a single JSON object conforming to the provided schema. Do not include any text outside the JSON block.`;
 
-  const systemPrompt = "You are an expert nutritional analyst and wellness advisor. Your goal is to provide accurate, balanced, and critical information about any food item based on an image input. You must respond strictly in the requested JSON format.";
+  const systemPrompt = "You are an expert nutritional analyst and wellness advisor. Your goal is to provide accurate, balanced, and critical information about any food item based on an image input. You must respond strictly in the requested JSON format. Identify specific body parts that benefit from this food.";
 
   const schema = {
     type: "OBJECT",
@@ -27,9 +27,26 @@ Structure the output as a single JSON object conforming to the provided schema. 
         properties: {
           foodName: { type: "STRING", description: "The most likely name of the food item (e.g., 'Grilled Salmon with Asparagus')." },
           description: { type: "STRING", description: "A summary of ingredients and estimated nutritional value." },
-          estimatedServing: { type: "STRING", description: "Estimated nutritional information per serving (e.g., '450-550 kcal, High Protein, Low Carb')." }
+          estimatedServing: { type: "STRING", description: "Estimated nutritional information per serving (e.g., '450-550 kcal, High Protein, Low Carb')." },
+          healthScore: { type: "INTEGER", description: "A score from 0 (Unhealthy) to 100 (Superfood) based on nutritional density." },
+          category: { type: "STRING", description: "Category of the food (e.g., 'Protein', 'Vegetable', 'Junk Food', 'Fruit')." }
         },
-        propertyOrdering: ["foodName", "description", "estimatedServing"]
+        propertyOrdering: ["foodName", "description", "estimatedServing", "healthScore", "category"]
+      },
+      macronutrients: {
+        type: "OBJECT",
+        description: "Estimated percentage breakdown of macronutrients (must sum to approx 100).",
+        properties: {
+          protein: { type: "INTEGER", description: "Percentage of protein." },
+          carbs: { type: "INTEGER", description: "Percentage of carbohydrates." },
+          fats: { type: "INTEGER", description: "Percentage of fats." }
+        },
+        propertyOrdering: ["protein", "carbs", "fats"]
+      },
+      targetBodyParts: {
+        type: "ARRAY",
+        description: "List of body parts that benefit most from this food. STRICTLY CHOOSE FROM: ['brain', 'heart', 'eyes', 'bones', 'muscle', 'skin', 'digestion', 'immunity', 'lungs', 'liver'].",
+        items: { type: "STRING" }
       },
       healthBenefits: {
         type: "ARRAY",
@@ -56,7 +73,7 @@ Structure the output as a single JSON object conforming to the provided schema. 
         }
       }
     },
-    propertyOrdering: ["nutritionalAnalysis", "healthBenefits", "healthRisks"]
+    propertyOrdering: ["nutritionalAnalysis", "macronutrients", "targetBodyParts", "healthBenefits", "healthRisks"]
   };
 
   return {
@@ -87,7 +104,7 @@ export async function fetchWithRetry(payload, maxRetries = 5, initialDelay = 100
       });
 
       if (resp.status === 429) {
-        
+
         await sleep(delay);
         delay *= 2;
         continue;

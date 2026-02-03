@@ -13,7 +13,7 @@ export default function ImageUpload({ setImageData, setMimeType, showModal, star
       return;
     }
 
-    if (file.size > 15 * 1024 * 1024) { 
+    if (file.size > 15 * 1024 * 1024) {
       showModal("File Too Large", "Please select an image smaller than 15MB.");
       inputRef.current.value = "";
       clearPreview();
@@ -42,29 +42,40 @@ export default function ImageUpload({ setImageData, setMimeType, showModal, star
 
   return (
     <>
-      <div className="mb-6">
-        <label htmlFor="fileInput" className="block text-sm font-medium text-gray-700 mb-2">1. Upload Food Image</label>
-        <input
-          ref={inputRef}
-          id="fileInput"
-          type="file"
-          accept="image/*"
-          onChange={onFileChange}
-          className="w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2.5"
-        />
-        <div id="imagePreviewContainer" className={`${previewSrc ? "mt-4 border-2 border-dashed border-gray-300 rounded-lg p-2 bg-gray-50" : "hidden"}`}>
-          <img id="imagePreview" src={previewSrc} alt="Image Preview" className="w-full h-48 object-contain rounded-lg" />
+      <div className="mb-8">
+        <label className="block text-xs font-bold text-[#86868B] uppercase tracking-wider mb-3">1. Upload Food Image</label>
+
+        <div
+          onClick={() => inputRef.current.click()}
+          className="w-full h-48 border-2 border-dashed border-[#E5E5EA] rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors bg-white relative overflow-hidden group"
+        >
+          {previewSrc ? (
+            <img src={previewSrc} alt="Preview" className="w-full h-full object-cover" />
+          ) : (
+            <>
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+              </div>
+              <span className="text-sm font-medium text-[#1D1D1F]">Click to Upload</span>
+              <span className="text-xs text-[#86868B] mt-1">or drag and drop</span>
+            </>
+          )}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+            className="hidden"
+          />
         </div>
       </div>
 
       <button
-        id="analyzeButton"
         onClick={() => startAnalysis && startAnalysis()}
         disabled={buttonDisabled}
-        className="w-full py-3 bg-green-500 text-white font-semibold rounded-xl shadow-lg transition duration-200 hover:bg-green-600 disabled:bg-green-300"
-        aria-disabled={buttonDisabled}
+        className="w-full py-4 bg-[#0071E3] text-white font-semibold rounded-full shadow-md hover:bg-[#0077ED] active:scale-95 transition-all text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Generate Full Health Report
+        Generate Health Analysis
       </button>
     </>
   );
